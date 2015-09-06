@@ -6,3 +6,4 @@
 * dump2png: convert memory dump to png file
 * hilog: highlight logs
 * regmask: print bit-fields of given value
+* tb: cli for tomboy note
