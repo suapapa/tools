@@ -11,14 +11,16 @@ import (
 )
 
 var (
-	flagID string
+	flagListAll bool
+	flagID      string
 )
 
 func main() {
+	flag.BoolVar(&flagListAll, "a", false, "list all note")
 	flag.StringVar(&flagID, "i", "", "show a note of given ID")
 	flag.Parse()
 
-	if flagID == "" && len(flag.Args()) == 0 {
+	if flagID == "" && flagListAll == false && len(flag.Args()) == 0 {
 		flag.Usage()
 		os.Exit(-1)
 	}
@@ -29,7 +31,7 @@ func main() {
 		panic(err)
 	}
 
-	// display
+	// display a note
 	if flagID != "" {
 		for _, n := range notes {
 			if strings.HasPrefix(n.ID.String(), flagID) {
@@ -37,6 +39,14 @@ func main() {
 			}
 		}
 		os.Exit(0)
+	}
+
+	// list All
+	if flagListAll {
+		for _, n := range notes {
+			fmt.Println(n.ID, n.Title, n.Rev)
+		}
+
 	}
 
 	// search
