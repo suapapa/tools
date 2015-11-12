@@ -22,7 +22,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&flagScale, "s", "ko", "Select Scale")
+	flag.StringVar(&flagScale, "s", "ko", "Select scale in ko, en, bin or all")
 	flag.Parse()
 }
 
