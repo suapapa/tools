@@ -27,34 +27,41 @@ func init() {
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Printf("usage: %s Number\n", os.Args[0])
+	if flag.NArg() < 1 {
+		fmt.Printf("usage: %s Numbers\n", os.Args[0])
 		os.Exit(-1)
 	}
 
-	scale := &koScale
+	scales := []*Scale{}
+
 	switch flagScale {
 	case "ko":
-		scale = &koScale
+		scales = append(scales, &koScale)
 	case "en":
-		scale = &enScale
+		scales = append(scales, &enScale)
 	case "bin":
-		scale = &binScale
+		scales = append(scales, &binScale)
+	case "all":
+		scales = append(scales, &koScale, &enScale, &binScale)
 	default:
-		fmt.Fprint(os.Stderr, "unsupported scale. use ko, en or bin\n")
+		fmt.Fprint(os.Stderr, "unsupported scale. use ko, en, bin or all\n")
 		os.Exit(-1)
 	}
 
-	n := flag.Arg(0)
-	ns, err := convertForHuman(n, scale)
-	if err != nil {
-		// TODO: beautiful usage
-		fmt.Fprintln(os.Stderr, err)
-		flag.PrintDefaults()
-		os.Exit(-1)
+	for _, n := range flag.Args() {
+		for _, scale := range scales {
+			ns, err := convertForHuman(n, scale)
+			if err != nil {
+				// TODO: beautiful usage
+				fmt.Fprintln(os.Stderr, err)
+				flag.PrintDefaults()
+				os.Exit(-1)
+			}
+			fmt.Print(ns, " ")
+		}
+		fmt.Println()
 	}
 
-	fmt.Println(ns)
 }
 
 func isNum(s string) error {

@@ -1,6 +1,6 @@
 # hn: makes Human readable Number
 
-for now, only for 5000만 Korean Humans
+For 7Billion peoples
 
 Install:
 
