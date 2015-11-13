@@ -5,22 +5,27 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/suapapa/tools/tb/tomboy"
 )
 
 var (
-	flagListAll bool
-	flagID      string
+	flagListAll    bool
+	flagID         string
+	flagWithMarkup bool
 )
+
+var reMakrup = regexp.MustCompile("</?[^<>]+?>")
 
 func main() {
 	flag.BoolVar(&flagListAll, "a", false, "list all note")
 	flag.StringVar(&flagID, "i", "", "show a note of given ID")
+	flag.BoolVar(&flagWithMarkup, "m", false, "show a note with tomboy markup")
 	flag.Parse()
 
-	if flagID == "" && flagListAll == false && len(flag.Args()) == 0 {
+	if flagID == "" && flagListAll == false && flag.NArg() == 0 {
 		flag.Usage()
 		os.Exit(-1)
 	}
@@ -35,7 +40,12 @@ func main() {
 	if flagID != "" {
 		for _, n := range notes {
 			if strings.HasPrefix(n.ID.String(), flagID) {
-				fmt.Println(n.Text.Content)
+				if flagWithMarkup {
+					fmt.Println(n.Text.Content)
+				} else {
+					noteText := reMakrup.ReplaceAllString(n.Text.Content, "")
+					fmt.Println(noteText)
+				}
 			}
 		}
 		os.Exit(0)
