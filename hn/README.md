@@ -4,7 +4,7 @@ For 7Billion peoples
 
 Install:
 
-    go get github.com/suapapa/hn
+    go get github.com/suapapa/tools/hn
 
 
 Example Usage:
