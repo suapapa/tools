@@ -21,19 +21,9 @@ func init() {
 
 func main() {
 	flag.Parse()
-
-	var w *os.File
 	var err error
-	if flagOut != "" {
-		w, err = os.Create(flagOut)
-		if err != nil {
-			panic(err)
-		}
-		defer w.Close()
-	} else {
-		w = os.Stdout
-	}
 
+	// read smi
 	var s *os.File
 	if flag.NArg() == 0 {
 		s = os.Stdin
@@ -46,10 +36,22 @@ func main() {
 		defer s.Close()
 	}
 
-	// read smi
+	// convert it to subtitle.Book
 	b, err := subtitle.ReadSmi(s)
 	if err != nil {
 		panic(err)
+	}
+
+	// write in srt
+	var w *os.File
+	if flagOut != "" {
+		w, err = os.Create(flagOut)
+		if err != nil {
+			panic(err)
+		}
+		defer w.Close()
+	} else {
+		w = os.Stdout
 	}
 
 	err = subtitle.ExportToSrtFile(b, w)
