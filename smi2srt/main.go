@@ -34,12 +34,17 @@ func main() {
 		w = os.Stdout
 	}
 
-	smiFileName := flag.Arg(0)
-	s, err := os.Open(smiFileName)
-	if err != nil {
-		panic(err)
+	var s *os.File
+	if flag.NArg() == 0 {
+		s = os.Stdin
+	} else {
+		smiFileName := flag.Arg(0)
+		s, err = os.Open(smiFileName)
+		if err != nil {
+			panic(err)
+		}
+		defer s.Close()
 	}
-	defer s.Close()
 
 	// read smi
 	b, err := subtitle.ReadSmi(s)

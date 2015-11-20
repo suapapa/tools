@@ -4,6 +4,10 @@ Install:
 
     go get github.com/suapapa/tools/smi2srt
 
-Example Usage
+Example Usage:
 
     smi2srt -o output.srt input_utf8.smi
+
+Or:
+
+    iconv -fcp949 -tutf-8 input_cp949.smi | ./smi2srt > output.srt
