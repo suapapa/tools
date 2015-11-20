@@ -5,9 +5,14 @@
 package main
 
 import (
+	"bytes"
 	"flag"
+	"io/ioutil"
+	"log"
 	"os"
 
+	"github.com/saintfish/chardet"
+	"github.com/suapapa/go_hangul/encoding/cp949"
 	"github.com/suapapa/go_subtitle"
 )
 
@@ -36,8 +41,27 @@ func main() {
 		defer s.Close()
 	}
 
+	// detect charset
+	buff, err := ioutil.ReadAll(s)
+	if err != nil {
+		panic(err)
+	}
+	det := chardet.NewHtmlDetector()
+	r, err := det.DetectBest(buff)
+	var utf8Buff []byte
+	switch r.Charset {
+	case "EUC-KR":
+		utf8Buff, err = cp949.From(buff)
+	case "UTF-8":
+		utf8Buff = buff
+	default:
+		log.Fatal(r.Charset, "is not supported")
+	}
+
+	utf8Src := bytes.NewBuffer(utf8Buff)
+
 	// convert it to subtitle.Book
-	b, err := subtitle.ReadSmi(s)
+	b, err := subtitle.ReadSmi(utf8Src)
 	if err != nil {
 		panic(err)
 	}
