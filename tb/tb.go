@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"flag"
 	"fmt"
 	"os"
@@ -12,9 +13,11 @@ import (
 )
 
 var (
-	flagListAll    bool
-	flagID         string
-	flagWithMarkup bool
+	flagListAll           bool
+	flagID                string
+	flagWithMarkup        bool
+	flagGobEncodeFileName string
+	flagGobDecodeFileName string
 )
 
 var reMakrup = regexp.MustCompile("</?[^<>]+?>")
@@ -23,17 +26,42 @@ func main() {
 	flag.BoolVar(&flagListAll, "a", false, "list all note")
 	flag.StringVar(&flagID, "i", "", "show a note of given ID")
 	flag.BoolVar(&flagWithMarkup, "m", false, "show a note with tomboy markup")
+	flag.StringVar(&flagGobEncodeFileName, "ge", "", "gob encode notes to given name")
+	flag.StringVar(&flagGobDecodeFileName, "gd", "", "gob decode notes from given name")
 	flag.Parse()
 
-	if flagID == "" && flagListAll == false && flag.NArg() == 0 {
+	if flagID == "" && flagListAll == false &&
+		flagGobEncodeFileName == "" && flagGobDecodeFileName == "" &&
+		flag.NArg() == 0 {
 		flag.Usage()
 		os.Exit(-1)
 	}
 
-	var tomboyRoot = filepath.Join(os.Getenv("HOME"), "/Dropbox/tomboy/")
-	notes, err := tomboy.MakeNotebookFromFileSystemSync(tomboyRoot)
-	if err != nil {
-		panic(err)
+	var notes tomboy.Notebook
+	var err error
+	if flagGobDecodeFileName == "" {
+		// read notes from tomboy root filepath
+		tomboyRoot := filepath.Join(os.Getenv("HOME"), "/Dropbox/tomboy/")
+		notes, err = tomboy.MakeNotebookFromFileSystemSync(tomboyRoot)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		// read notes from gob file
+		r, err := os.Open(flagGobDecodeFileName)
+		if err != nil {
+			panic(err)
+		}
+		dec := gob.NewDecoder(r)
+		err = dec.Decode(&notes)
+		if err != nil {
+			panic(err)
+		}
+
+		err = r.Close()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	// display a note
@@ -49,6 +77,24 @@ func main() {
 			}
 		}
 		os.Exit(0)
+	}
+
+	// encode to gob filepath
+	if flagGobEncodeFileName != "" {
+		w, err := os.Create(flagGobEncodeFileName)
+		if err != nil {
+			panic(err)
+		}
+
+		enc := gob.NewEncoder(w)
+		err = enc.Encode(notes)
+		if err != nil {
+			panic(err)
+		}
+		err = w.Close()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	// list All
