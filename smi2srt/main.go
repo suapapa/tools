@@ -73,10 +73,10 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		defer w.Close()
 	} else {
 		w = os.Stdout
 	}
+	defer w.Close()
 
 	err = subtitle.ExportToSrtFile(b, w)
 	if err != nil {
