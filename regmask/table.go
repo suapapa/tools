@@ -76,12 +76,3 @@ func (t *table) writeInMd(w io.Writer) {
 		fmt.Fprintln(w)
 	}
 }
-
-func (t *table) Render(w io.Writer) {
-	switch opt.fmt {
-	case "md":
-		t.writeInMd(w)
-	case "csv":
-		t.writeInCSV(w)
-	}
-}

@@ -14,6 +14,7 @@ type options struct {
 	fmt         string
 	base        int
 	headerGuide bool
+	outFile     string
 
 	usage func()
 }
@@ -24,6 +25,7 @@ func setupFlags(opts *options) *flag.FlagSet {
 	fs.StringVar(&opts.fmt, "f", "md", "output format")
 	fs.IntVar(&opts.base, "b", 2, "output base")
 	fs.BoolVar(&opts.headerGuide, "g", false, "print guide in header")
+	fs.StringVar(&opts.outFile, "o", "", "write output to a file")
 
 	fs.Usage = func() {
 		fmt.Printf("Usage: %s [options] <scheme> value...\n",

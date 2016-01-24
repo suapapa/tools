@@ -61,5 +61,20 @@ func main() {
 		table.AppendRows(row)
 	}
 
-	table.Render(os.Stdout)
+	var out *os.File
+	if opt.outFile == "" {
+		out = os.Stdout
+	} else {
+		out, err = os.Create(opt.outFile)
+		if err != nil {
+			panic(err)
+		}
+	}
+	defer out.Close()
+	switch opt.fmt {
+	case "md":
+		table.writeInMd(out)
+	case "csv":
+		table.writeInCSV(out)
+	}
 }
