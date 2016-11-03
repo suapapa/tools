@@ -1,17 +1,46 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 )
 
-func main() {
-	ip, err := resolveIP()
-	if err != nil {
-		panic(err)
-	}
+const (
+	defaultPort = "8081"
+)
 
-	fmt.Println("IP:", ip)
+var (
+	flagPort   string
+	flagServer bool
+)
+
+func init() {
+	flag.StringVar(&flagPort, "p", "8081", "server port")
+	flag.BoolVar(&flagServer, "s", false, "print client IP")
+	flag.Parse()
+}
+
+func main() {
+	if flagServer {
+		// TODO: receive ip from client and print it
+		panic("not implemented")
+
+	} else {
+		ip, err := resolveIP()
+		if err != nil {
+			panic(err)
+		}
+
+		serverIP := flag.Arg(0)
+
+		if serverIP != "" {
+			fmt.Println("serverIP", serverIP)
+			// TODO: Send ip to server
+		}
+
+		fmt.Println("IP:", ip)
+	}
 }
 
 func resolveIP() (string, error) {
