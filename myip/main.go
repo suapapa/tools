@@ -3,11 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net"
-)
-
-const (
-	defaultPort = "8081"
 )
 
 var (
@@ -23,9 +20,24 @@ func init() {
 
 func main() {
 	if flagServer {
-		// TODO: receive ip from client and print it
-		panic("not implemented")
+		l, err := net.Listen("tcp", ":"+flagPort)
+		if err != nil {
+			panic(err)
+		}
+		defer l.Close()
 
+		log.Println("Listening on", flagPort)
+		for {
+			conn, err := l.Accept()
+			if err != nil {
+				panic(err)
+			}
+
+			log.Printf("Received message %s -> %s\n",
+				conn.RemoteAddr(), conn.LocalAddr())
+
+			go handleRequest(conn)
+		}
 	} else {
 		ip, err := resolveIP()
 		if err != nil {
@@ -37,35 +49,21 @@ func main() {
 		if serverIP != "" {
 			fmt.Println("serverIP", serverIP)
 			// TODO: Send ip to server
+			// echo "hello" | nc 127.0.0.1 8081
 		}
 
 		fmt.Println("IP:", ip)
 	}
 }
 
-func resolveIP() (string, error) {
-	var ip net.IP
-	ifaces, err := net.Interfaces()
+func handleRequest(conn net.Conn) {
+	defer conn.Close()
+	buf := make([]byte, 1024)
+	reqLen, err := conn.Read(buf)
 	if err != nil {
-		panic(err)
+		log.Println("error at read:", err)
+		return
 	}
-	for _, i := range ifaces {
-		addrs, err := i.Addrs()
-		if err != nil {
-			panic(err)
-		}
-		for _, addr := range addrs {
-			switch v := addr.(type) {
-			case *net.IPNet:
-				ip = v.IP
-			case *net.IPAddr:
-				ip = v.IP
-			}
-			ip = ip.To4()
-			if ip != nil && ip.String() != "127.0.0.1" {
-				return ip.String(), nil
-			}
-		}
-	}
-	return "", fmt.Errorf("cannot resolve the IP")
+
+	fmt.Println(string(buf[:reqLen]))
 }
