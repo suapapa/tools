@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
+	"os"
 )
 
 var (
@@ -19,7 +21,7 @@ func init() {
 }
 
 func main() {
-	if flagServer {
+	if flagServer { // server
 		l, err := net.Listen("tcp", ":"+flagPort)
 		if err != nil {
 			panic(err)
@@ -38,21 +40,29 @@ func main() {
 
 			go handleRequest(conn)
 		}
-	} else {
+	} else { // client
 		ip, err := resolveIP()
 		if err != nil {
 			panic(err)
 		}
 
-		serverIP := flag.Arg(0)
+		var c io.WriteCloser
 
+		serverIP := flag.Arg(0)
 		if serverIP != "" {
-			fmt.Println("serverIP", serverIP)
-			// TODO: Send ip to server
-			// echo "hello" | nc 127.0.0.1 8081
+			addr := serverIP + ":" + flagPort
+			log.Println("Send ip to", addr)
+
+			c, err = net.Dial("tcp", addr)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			c = os.Stdout
 		}
 
-		fmt.Println("IP:", ip)
+		fmt.Fprintf(c, "IP: %s", ip)
+		c.Close()
 	}
 }
 
