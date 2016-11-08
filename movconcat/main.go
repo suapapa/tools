@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -15,7 +16,12 @@ import (
 const movRePtn = `(\d\d\d\d_\d\d\d\d_\d\d\d\d\d\d)_\d\d\d.MOV`
 const movTimeForm = "2006_0102_150405"
 
+var (
+	flagUseDocker = flag.Bool("d", false, "use docker")
+)
+
 func main() {
+	flag.Parse()
 	// list up MOVs
 	// root := filepath.Join(os.Getenv("HOME"), "video/blackbox/raw")
 	root := ""
@@ -76,14 +82,29 @@ func main() {
 			panicIfErr(err)
 			defer stdErr.Close()
 
-			// TODO: use docker for better performance.
-			// cf) https://github.com/jrottenberg/ffmpeg
-			cmd := exec.Command("ffmpeg",
-				"-f", "concat",
-				"-i", tmp.Name(),
-				"-c", "copy",
-				o,
-			)
+			var cmd *exec.Cmd
+			if *flagUseDocker {
+				// cf) https://github.com/jrottenberg/ffmpeg
+				// $ sudo docker run -v $PWD:/opt/data --rm \
+				// jrottenberg/ffmpeg -f concat \
+				// -i /opt/data/files.list -c copy /opt/data/test.mov
+				cmd = exec.Command("docker", "run", "--rm",
+					"-v", os.Getenv("PWD")+":/opt/data",
+					"jrottenberg/ffmpeg",
+					"-f", "concat",
+					"-i", filepath.Join("/opt/data", tmp.Name()),
+					"-c", "copy",
+					filepath.Join("/opt/data", o),
+				)
+			} else {
+				cmd = exec.Command("ffmpeg",
+					"-f", "concat",
+					"-i", tmp.Name(),
+					"-c", "copy",
+					o,
+				)
+			}
+
 			cmd.Stderr = stdErr
 
 			err = cmd.Start()
