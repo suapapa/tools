@@ -41,7 +41,7 @@ func main() {
 			go handleRequest(conn)
 		}
 	} else { // client
-		ip, err := resolveIP()
+		ip, mac, err := resolveIP()
 		if err != nil {
 			panic(err)
 		}
@@ -61,7 +61,7 @@ func main() {
 			c = os.Stdout
 		}
 
-		fmt.Fprintf(c, "IP: %s", ip)
+		fmt.Fprintf(c, "IP: %s\nMAC: %s\n", ip, mac)
 		c.Close()
 	}
 }

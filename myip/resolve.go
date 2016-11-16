@@ -5,17 +5,18 @@ import (
 	"net"
 )
 
-func resolveIP() (string, error) {
+// resolveIP returns IP, MAC and error
+func resolveIP() (string, string, error) {
 	var ip net.IP
 	ifaces, err := net.Interfaces()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	for _, i := range ifaces {
 		addrs, err := i.Addrs()
 		if err != nil {
-			return "", err
+			continue
 		}
 		for _, addr := range addrs {
 			switch v := addr.(type) {
@@ -26,9 +27,9 @@ func resolveIP() (string, error) {
 			}
 			ip = ip.To4()
 			if ip != nil && ip.String() != "127.0.0.1" {
-				return ip.String(), nil
+				return ip.String(), i.HardwareAddr.String(), nil
 			}
 		}
 	}
-	return "", fmt.Errorf("cannot resolve the IP")
+	return "", "", fmt.Errorf("cannot resolve the IP")
 }
