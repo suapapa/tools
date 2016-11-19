@@ -14,6 +14,9 @@ func resolveIP() (string, string, error) {
 	}
 
 	for _, i := range ifaces {
+		if (i.Flags & net.FlagUp) == 0 {
+			continue
+		}
 		addrs, err := i.Addrs()
 		if err != nil {
 			continue
