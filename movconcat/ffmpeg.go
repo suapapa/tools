@@ -21,10 +21,6 @@ func runFFmpeg(k string, v []string) {
 
 	o := k + ".mov"
 
-	stdErr, err := os.Create(k + ".log")
-	panicIfErr(err)
-	defer stdErr.Close()
-
 	var cmd *exec.Cmd
 	if *flagUseDocker {
 		// cf) https://github.com/jrottenberg/ffmpeg
@@ -48,7 +44,12 @@ func runFFmpeg(k string, v []string) {
 		)
 	}
 
-	cmd.Stderr = stdErr
+	if *flagDeleteIntermedeateFiles == false {
+		stdErr, err2 := os.Create(k + ".log")
+		panicIfErr(err2)
+		defer stdErr.Close()
+		cmd.Stderr = stdErr
+	}
 
 	err = cmd.Start()
 	panicIfErr(err)

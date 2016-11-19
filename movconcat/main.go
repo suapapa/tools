@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -14,8 +15,10 @@ const movRePtn = `(\d\d\d\d_\d\d\d\d_\d\d\d\d\d\d)_\d\d\d.MOV`
 const movTimeForm = "2006_0102_150405"
 
 var (
-	flagUseDocker  = flag.Bool("d", false, "use docker")
-	flagParalleRun = flag.Bool("p", false, "run cmd parallely")
+	flagUseDocker               = flag.Bool("d", false, "use docker")
+	flagParalleRun              = flag.Bool("p", false, "run cmd parallely")
+	flagDeleteIntermedeateFiles = flag.Bool("d", false,
+		"delete intermedeate files after finish concat")
 )
 
 func main() {
@@ -64,10 +67,20 @@ func main() {
 		if *flagParalleRun {
 			go func(k string, v []string) {
 				runFFmpeg(k, v)
+				if *flagDeleteIntermedeateFiles {
+					for _, f := range v {
+						os.Remove(f)
+					}
+				}
 				wg.Done()
 			}(k, v)
 		} else {
 			runFFmpeg(k, v)
+			if *flagDeleteIntermedeateFiles {
+				for _, f := range v {
+					os.Remove(f)
+				}
+			}
 			wg.Done()
 		}
 	}
