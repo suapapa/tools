@@ -17,7 +17,7 @@ const movTimeForm = "2006_0102_150405"
 var (
 	flagUseDocker               = flag.Bool("d", false, "use docker")
 	flagParalleRun              = flag.Bool("p", false, "run cmd parallely")
-	flagDeleteIntermedeateFiles = flag.Bool("d", false,
+	flagDeleteIntermedeateFiles = flag.Bool("i", false,
 		"delete intermedeate files after finish concat")
 )
 
