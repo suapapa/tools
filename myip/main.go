@@ -14,27 +14,23 @@ import (
 )
 
 var (
-	flagPort              string
-	flagServer            bool
-	flagSpeedTestDuration int
+	fPort              = flag.String("p", "8081", "server port")
+	fServer            = flag.Bool("s", false, "print IP from client")
+	fSpeedTestDuration = flag.Int("d", 0, "speed test duration in secs")
+	fWaitBeforeExit    = flag.Bool("w", false, "wait userinput before exit")
 )
 
-func init() {
-	flag.StringVar(&flagPort, "p", "8081", "server port")
-	flag.BoolVar(&flagServer, "s", false, "print IP from client")
-	flag.IntVar(&flagSpeedTestDuration, "d", 0, "speed test duration in secs")
-	flag.Parse()
-}
-
 func main() {
-	if flagServer { // server
-		l, err := net.Listen("tcp", ":"+flagPort)
+	flag.Parse()
+
+	if *fServer { // server
+		l, err := net.Listen("tcp", ":"+*fPort)
 		if err != nil {
 			panic(err)
 		}
 		defer l.Close()
 
-		log.Println("Listening on", flagPort)
+		log.Println("Listening on", *fPort)
 		for {
 			conn, err := l.Accept()
 			if err != nil {
@@ -47,7 +43,7 @@ func main() {
 			go func(conn net.Conn) {
 				defer conn.Close()
 
-				// if flagSpeedTestDuration == 0 {
+				// if *flagSpeedTestDuration == 0 {
 				// 	_, err := io.Copy(os.Stdout, conn)
 				// 	if err != nil {
 				// 		log.Println("error at read:", err)
@@ -71,7 +67,7 @@ func main() {
 
 		serverIP := flag.Arg(0)
 		if serverIP != "" {
-			addr := serverIP + ":" + flagPort
+			addr := serverIP + ":" + *fPort
 			log.Println("Send ip to", addr)
 
 			c, err = net.Dial("tcp", addr)
@@ -83,13 +79,13 @@ func main() {
 		}
 		defer c.Close()
 
-		if flagSpeedTestDuration == 0 {
+		if *fSpeedTestDuration == 0 {
 			fmt.Fprintf(c, "IP: %s\nMAC: %s\n", ip, mac)
 		} else {
 			secTick := time.Tick(time.Second)
 			tw := tachoio.NewWriter(c)
 			go func() { io.Copy(tw, &tachoio.NoopRead{}) }()
-			for i := 0; i < flagSpeedTestDuration; i++ {
+			for i := 0; i < *fSpeedTestDuration; i++ {
 				select {
 				case <-secTick:
 					n, d := tw.WriteMeter()
@@ -97,5 +93,10 @@ func main() {
 				}
 			}
 		}
+	}
+
+	if *fWaitBeforeExit {
+		var s string
+		fmt.Scanln(&s)
 	}
 }
