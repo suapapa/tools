@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	tachoio "github.com/suapapa/go_tachoio"
@@ -30,35 +32,33 @@ func main() {
 		}
 		defer l.Close()
 
-		log.Println("Listening on", *fPort)
+		// log.Println("Listening on", *fPort)
 		for {
 			conn, err := l.Accept()
 			if err != nil {
 				panic(err)
 			}
 
-			log.Printf("Received message %s -> %s\n",
-				conn.RemoteAddr(), conn.LocalAddr())
+			// log.Printf("Received message %s -> %s\n",
+			// 	conn.RemoteAddr(), conn.LocalAddr())
 
 			go func(conn net.Conn) {
 				defer conn.Close()
+				bc := bufio.NewReader(conn)
+				firstline, err := bc.ReadString('\n')
+				if err == nil {
+					firstline = strings.TrimRight(firstline, "\n")
+					fmt.Print(firstline)
+				}
 
-				// if *flagSpeedTestDuration == 0 {
-				// 	_, err := io.Copy(os.Stdout, conn)
-				// 	if err != nil {
-				// 		log.Println("error at read:", err)
-				// 	}
-				// } else {
-				log.Println("waiting for all received...")
-				tr := tachoio.NewReader(conn)
+				tr := tachoio.NewReader(bc)
 				io.Copy(ioutil.Discard, tr)
 				n, d := tr.ReadMeter()
-				log.Printf("read %s bytes per a sec\n", scale(int(float64(n)/d.Seconds())))
-				// }
+				fmt.Printf(" %s BPS\n", scale(int(float64(n)/d.Seconds())))
 			}(conn)
 		}
 	} else { // client
-		ip, mac, err := resolveIP()
+		ip, err := resolveIP()
 		if err != nil {
 			panic(err)
 		}
@@ -79,9 +79,8 @@ func main() {
 		}
 		defer c.Close()
 
-		if *fSpeedTestDuration == 0 {
-			fmt.Fprintf(c, "IP: %s\nMAC: %s\n", ip, mac)
-		} else {
+		fmt.Fprintln(c, ip)
+		if *fSpeedTestDuration != 0 {
 			secTick := time.Tick(time.Second)
 			tw := tachoio.NewWriter(c)
 			go func() { io.Copy(tw, &tachoio.NoopRead{}) }()

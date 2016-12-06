@@ -3,14 +3,21 @@ package main
 import (
 	"fmt"
 	"net"
+	"os"
+	"strings"
 )
 
-// resolveIP returns IP, MAC and error
-func resolveIP() (string, string, error) {
+// resolveIP returns hostname, IP, MAC and error
+func resolveIP() (string, error) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "", err
+	}
+
 	var ip net.IP
 	ifaces, err := net.Interfaces()
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	for _, i := range ifaces {
@@ -31,9 +38,9 @@ func resolveIP() (string, string, error) {
 			}
 			if ip != nil {
 				ip = ip.To4()
-				return ip.String(), i.HardwareAddr.String(), nil
+				return strings.Join([]string{hostname, ip.String(), i.HardwareAddr.String()}, " "), nil
 			}
 		}
 	}
-	return "", "", fmt.Errorf("cannot resolve the IP")
+	return "", fmt.Errorf("cannot resolve the IP")
 }

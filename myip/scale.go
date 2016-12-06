@@ -17,7 +17,7 @@ var (
 			"Peta",
 			"Exa",
 			"Zetta",
-			"yotta",
+			"Yotta",
 		},
 	}
 )
@@ -35,6 +35,11 @@ func scale(v int) string {
 	if l%binScal.n == 0 {
 		mIdx--
 	}
+
+	if mIdx == 0 {
+		return n
+	}
+
 	metric := binScal.name[mIdx]
 	hTo := l - (mIdx * binScal.n)
 	head := n[:hTo] + "." + n[hTo:hTo+1]
