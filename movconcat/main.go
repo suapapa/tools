@@ -1,7 +1,7 @@
 package main
 
 import (
-	"flag"
+	"context"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,15 +14,7 @@ import (
 const movRePtn = `(\d\d\d\d_\d\d\d\d_\d\d\d\d\d\d)_\d\d\d.MOV`
 const movTimeForm = "2006_0102_150405"
 
-var (
-	flagUseDocker               = flag.Bool("d", false, "use docker")
-	flagParalleRun              = flag.Bool("p", false, "run cmd parallely")
-	flagDeleteIntermedeateFiles = flag.Bool("i", false,
-		"delete intermedeate files after finish concat")
-)
-
 func main() {
-	flag.Parse()
 	// list up MOVs
 	// root := filepath.Join(os.Getenv("HOME"), "video/blackbox/raw")
 	root := ""
@@ -61,28 +53,44 @@ func main() {
 	}
 
 	// concat MOVs
+	if *flagJobs <= 0 {
+		*flagJobs = 1
+	}
+
 	var wg sync.WaitGroup
-	wg.Add(len(movs))
-	for k, v := range movs {
-		if *flagParalleRun {
-			go func(k string, v []string) {
-				runFFmpeg(k, v)
-				if *flagDeleteIntermedeateFiles {
-					for _, f := range v {
-						os.Remove(f)
+	wg.Add(*flagJobs)
+
+	type Clips struct {
+		k string
+		v []string
+	}
+
+	wCh := make(chan *Clips)
+	ctx, cancle := context.WithCancel(context.Background())
+	defer cancle()
+
+	for i := 0; i < *flagJobs; i++ {
+		// create Workers
+		go func(ctx context.Context, ch chan *Clips) {
+			defer wg.Done()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case c := <-ch:
+					runFFmpeg(c.k, c.v)
+					if *flagDeleteIntermedeateFiles {
+						for _, f := range c.v {
+							os.Remove(f)
+						}
 					}
 				}
-				wg.Done()
-			}(k, v)
-		} else {
-			runFFmpeg(k, v)
-			if *flagDeleteIntermedeateFiles {
-				for _, f := range v {
-					os.Remove(f)
-				}
 			}
-			wg.Done()
-		}
+		}(ctx, wCh)
+	}
+
+	for k, v := range movs {
+		wCh <- &Clips{k: k, v: v}
 	}
 
 	wg.Wait()
