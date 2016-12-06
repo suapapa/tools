@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/rand"
 	"flag"
 	"fmt"
 	"io"
@@ -58,7 +57,7 @@ func main() {
 				tr := tachoio.NewReader(conn)
 				io.Copy(ioutil.Discard, tr)
 				n, d := tr.ReadMeter()
-				log.Printf("read %.1f bytes per a sec\n", float64(n)/d.Seconds())
+				log.Printf("read %s bytes per a sec\n", scale(int(float64(n)/d.Seconds())))
 				// }
 			}(conn)
 		}
@@ -89,12 +88,12 @@ func main() {
 		} else {
 			secTick := time.Tick(time.Second)
 			tw := tachoio.NewWriter(c)
-			go func() { io.Copy(tw, rand.Reader) }()
+			go func() { io.Copy(tw, &tachoio.NoopRead{}) }()
 			for i := 0; i < flagSpeedTestDuration; i++ {
 				select {
 				case <-secTick:
 					n, d := tw.WriteMeter()
-					log.Printf("write %.1f bytes per a sec\n", float64(n)/d.Seconds())
+					log.Printf("write %s bytes per a sec\n", scale(int(float64(n)/d.Seconds())))
 				}
 			}
 		}
