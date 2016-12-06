@@ -14,7 +14,8 @@ func resolveIP() (string, string, error) {
 	}
 
 	for _, i := range ifaces {
-		if (i.Flags & net.FlagUp) == 0 {
+		if (i.Flags&net.FlagUp) == 0 ||
+			(i.Flags&net.FlagLoopback) != 0 {
 			continue
 		}
 		addrs, err := i.Addrs()
@@ -28,8 +29,8 @@ func resolveIP() (string, string, error) {
 			case *net.IPAddr:
 				ip = v.IP
 			}
-			ip = ip.To4()
-			if ip != nil && ip.String() != "127.0.0.1" {
+			if ip != nil {
+				ip = ip.To4()
 				return ip.String(), i.HardwareAddr.String(), nil
 			}
 		}
