@@ -9,6 +9,13 @@ import (
 )
 
 func runFFmpeg(k string, v []string) {
+	o := k + ".mov"
+
+	if len(v) == 1 {
+		os.Rename(v[0], o)
+		return
+	}
+
 	tmp, err := os.Create(k + ".list")
 	panicIfErr(err)
 	defer os.Remove(tmp.Name())
@@ -18,8 +25,6 @@ func runFFmpeg(k string, v []string) {
 		fmt.Fprintln(tmp, "file", f)
 	}
 	tmp.Close()
-
-	o := k + ".mov"
 
 	var cmd *exec.Cmd
 	if *flagUseDocker {
