@@ -1,3 +1,7 @@
+// Copyright 2013, Homin Lee. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package main
 
 import (
@@ -65,19 +69,21 @@ func main() {
 		v []string
 	}
 
-	wCh := make(chan *Clips)
+	workC := make(chan *Clips)
+	errC := make(chan error)
 	ctx, cancle := context.WithCancel(context.Background())
-	defer cancle()
 
 	for i := 0; i < *flagJobs; i++ {
 		// create Workers
-		go func(ctx context.Context, ch chan *Clips) {
+		go func(id int, ctx context.Context) {
+			log.Printf("worker %d start\n", id)
 			defer wg.Done()
 			for {
 				select {
 				case <-ctx.Done():
-					return
-				case c := <-ch:
+					log.Printf("worker %d finish\n", id)
+					break
+				case c := <-workC:
 					runFFmpeg(c.k, c.v)
 					if *flagDeleteIntermedeateFiles {
 						for _, f := range c.v {
@@ -86,14 +92,24 @@ func main() {
 					}
 				}
 			}
-		}(ctx, wCh)
+			errC <- ctx.Err()
+		}(i, ctx)
 	}
 
 	for k, v := range movs {
-		wCh <- &Clips{k: k, v: v}
+		workC <- &Clips{k: k, v: v}
 	}
 
-	wg.Wait()
+	// finish workers
+	cancle()
+
+	for i := 0; i < *flagJobs; i++ {
+		err := <-errC
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	log.Println("all done!")
 }
 

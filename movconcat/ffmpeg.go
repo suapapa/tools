@@ -1,3 +1,7 @@
+// Copyright 2013, Homin Lee. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package main
 
 import (
@@ -20,7 +24,6 @@ func runFFmpeg(k string, v []string) {
 	panicIfErr(err)
 	defer os.Remove(tmp.Name())
 
-	log.Println("Create file list,", tmp.Name())
 	for _, f := range v {
 		fmt.Fprintln(tmp, "file", f)
 	}
@@ -56,10 +59,10 @@ func runFFmpeg(k string, v []string) {
 		cmd.Stderr = stdErr
 	}
 
+	log.Println("concatting", o, "...")
+
 	err = cmd.Start()
 	panicIfErr(err)
-
-	log.Println("concatting", o, "...")
 
 	err = cmd.Wait()
 	if err != nil {
