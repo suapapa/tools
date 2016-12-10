@@ -1,9 +1,12 @@
 # suapapa's tools
 
+[![Build Status](https://travis-ci.org/suapapa/tools.png?branch=master)](https://travis-ci.org/suapapa/tools)
+
+## Install
+
     go get github.com/suapapa/tools/...
 
-* convunzip: unzip with encoding convert
-* dump2png: convert memory dump to png file
+## recommend tools 
+
+* regmask: print bit-fields in given value
 * hilog: highlight logs
-* regmask: print bit-fields of given value
-* tb: cli for tomboy note

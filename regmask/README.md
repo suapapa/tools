@@ -1,11 +1,5 @@
 # regmask : print bits fields of given value
 
-[![Build Status](https://travis-ci.org/suapapa/regmask.png?branch=master)](https://travis-ci.org/suapapa/regmask)
-
-# Install
-
-    $ go get github.com/suapapa/regmask
-
 # Usage
 
 Make csv file which describe `bitsFields` in form of `lable,bit_offset,bit_cnt`;

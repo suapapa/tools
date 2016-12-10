@@ -6,8 +6,6 @@ Highlight log from various source with pre-defined parsing rule, LSP.
 
 ![hilog_screenshot](https://lh6.googleusercontent.com/-JMq2QwuQh2g/UQYj9RFOvlI/AAAAAAAACHg/FFw3V7zg_9E/s912/hilog-go_dev-android.png)
 
-[![Build Status](https://travis-ci.org/suapapa/hilog.png?branch=master)](https://travis-ci.org/suapapa/hilog)
-
 ## Install
 
 [Install Go][1] and run;
