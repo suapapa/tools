@@ -33,7 +33,7 @@ func TestConvertForHuman(t *testing.T) {
 		f, zs, exp := n.first, n.zeros, n.expect
 		in := f + strings.Repeat("0", zs)
 
-		if r := convertForHuman(in, &koScale); r != exp {
+		if r, _ := convertForHuman(in, &koScale); r != exp {
 			t.Errorf("want \"%s\" got \"%s\"", exp, r)
 		}
 	}
