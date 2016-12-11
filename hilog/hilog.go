@@ -6,17 +6,18 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"os/user"
 	"path"
-	"sync"
 )
 
 var (
-	wg sync.WaitGroup
+	lsp  logSchemePack
+	errC = make(chan error, 2)
 )
 
 func main() {
@@ -24,13 +25,14 @@ func main() {
 
 	if opt.listBundledLSPs {
 		// Print out bundled LSPs
-		for lsp := range bundles {
-			fmt.Println(lsp)
+		for b := range bundles {
+			fmt.Println(b)
 		}
 		os.Exit(0)
 	}
 
-	lsp, err := loadLogSchemePack(args[0])
+	var err error
+	lsp, err = loadLogSchemePack(args[0])
 	exitIf(err)
 
 	if opt.dumpLSP {
@@ -39,42 +41,62 @@ func main() {
 		os.Exit(0)
 	}
 
+	ctx, cancle := context.WithCancel(context.Background())
+	defer cancle()
+
 	args = args[1:]
 	if len(args) > 0 {
 		// command given as args
-		cmd := exec.Command(args[0], args[1:]...)
+		cmd := exec.CommandContext(ctx, args[0], args[1:]...)
 		cStdOut, err := cmd.StdoutPipe()
 		exitIf(err)
 		cStdErr, err := cmd.StderrPipe()
 		exitIf(err)
 
-		wg.Add(2)
-		go paintLines(cStdOut, lsp, "stdout")
-		go paintLines(cStdErr, lsp, "stderr")
-
 		cmd.Start()
-		wg.Wait()
+
+		go paintLines(ctx, cStdOut, "stdout")
+		go paintLines(ctx, cStdErr, "stderr")
+
+		err = <-errC
+		exitIf(err)
+		err = <-errC
+		exitIf(err)
+
 		cmd.Wait()
 	} else {
-		// output given as stdin
-		wg.Add(1)
-		paintLines(os.Stdin, lsp, "stdout")
-		wg.Wait()
-	}
+		// log is given through stdin
+		go paintLines(ctx, os.Stdin, "stdout")
 
+		err = <-errC
+		exitIf(err)
+	}
 }
 
-func paintLines(r io.Reader, lsp logSchemePack, source string) {
-	defer wg.Done()
-
+func paintLines(ctx context.Context, r io.Reader, source string) {
 	scanner := bufio.NewScanner(r)
+	doneC := ctx.Done()
 	for scanner.Scan() {
 		lsp.Println(source, scanner.Text())
+		select {
+		case <-doneC:
+			break
+		default:
+			// do nothing
+		}
+	}
+
+	if err := ctx.Err(); err != nil {
+		errC <- err
+		return
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "[hilog] err of paintLines on", source, err)
+		errC <- err
+		return
 	}
+
+	errC <- nil
 }
 
 func loadLogSchemePack(lspName string) (logSchemePack, error) {
@@ -85,7 +107,9 @@ func loadLogSchemePack(lspName string) (logSchemePack, error) {
 
 	// Load from ~/configs/.hilog
 	usr, err := user.Current()
-	exitIf(err)
+	if err != nil {
+		return nil, fmt.Errorf("[hilog] %v", err)
+	}
 
 	lspPath := path.Join(usr.HomeDir, "configs", ".hilog", lspName+".json")
 	if lsp := loadLogSchemePackFile(lspPath); lsp != nil {
@@ -97,12 +121,11 @@ func loadLogSchemePack(lspName string) (logSchemePack, error) {
 		return lsp, nil
 	}
 
-	return nil, fmt.Errorf("[hilog] Can not load LogSchemePack, %s.", lspName)
+	return nil, fmt.Errorf("[hilog] fail to load LogSchemePack, %s", lspName)
 }
 
 func exitIf(err error) {
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		panic(err)
 	}
 }
