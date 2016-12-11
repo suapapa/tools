@@ -4,34 +4,28 @@
 
 package main
 
-import (
-	"strings"
-	"testing"
-)
+import "testing"
 
-func TestConvertForHuman(t *testing.T) {
+func TestKoScale(t *testing.T) {
 	numbers := []struct {
-		first string
-		zeros int
-
+		in     string
 		expect string
 	}{
-		{"2", 2, "200"},
-		{"3", 4, "3만"},
-		{"3", 6, "300만"},
-		{"3", 10, "300억"},
-		{"3", 14, "300조"},
-		{"3", 18, "300경"},
-		{"3", 22, "300해"},
+		{"200", "200"},
+		{"30000", "3만"},
+		{"3000000", "300만"},
+		{"30000000000", "300억"},
+		{"300000000000000", "300조"},
+		{"3000000000000000000", "300경"},
+		{"30000000000000000000000", "300해"},
 
-		{"3", 3, "3000"},
-		{"3", 7, "3000만"},
-		{"3", 11, "3000억"}, // len(in) == 12
+		{"3000", "3000"},
+		{"30000000", "3000만"},
+		{"300000000000", "3000억"}, // len(in) == 12
 	}
 
 	for _, n := range numbers {
-		f, zs, exp := n.first, n.zeros, n.expect
-		in := f + strings.Repeat("0", zs)
+		in, exp := n.in, n.expect
 
 		if r, _ := convertForHuman(in, &koScale); r != exp {
 			t.Errorf("want \"%s\" got \"%s\"", exp, r)
