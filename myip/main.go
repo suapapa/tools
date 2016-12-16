@@ -83,7 +83,7 @@ func main() {
 		if *fSpeedTestDuration != 0 {
 			secTick := time.Tick(time.Second)
 			tw := tachoio.NewWriter(c)
-			go func() { io.Copy(tw, &tachoio.NoopRead{}) }()
+			go func() { io.Copy(tw, tachoio.NoopReader) }()
 			for i := 0; i < *fSpeedTestDuration; i++ {
 				select {
 				case <-secTick:
