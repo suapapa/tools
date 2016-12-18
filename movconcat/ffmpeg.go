@@ -14,6 +14,12 @@ import (
 
 func runFFmpeg(k string, v []string) {
 	o := k + ".mov"
+	log.Printf("concatting %s(%d clips)\n", o, len(v))
+
+	if *flagDryrun {
+		log.Println(o, "finished. (dry run)")
+		return
+	}
 
 	if len(v) == 1 {
 		os.Rename(v[0], o)
@@ -58,8 +64,6 @@ func runFFmpeg(k string, v []string) {
 		defer stdErr.Close()
 		cmd.Stderr = stdErr
 	}
-
-	log.Println("concatting", o, "...")
 
 	err = cmd.Start()
 	panicIfErr(err)
