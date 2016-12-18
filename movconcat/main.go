@@ -1,4 +1,4 @@
-// Copyright 2013, Homin Lee. All rights reserved.
+// Copyright 2016, Homin Lee. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -78,14 +78,15 @@ func main() {
 		go func(id int, ctx context.Context) {
 			log.Printf("worker %d start\n", id)
 			defer wg.Done()
+		loop:
 			for {
 				select {
 				case <-ctx.Done():
 					log.Printf("worker %d finish\n", id)
-					break
+					break loop
 				case c := <-workC:
 					runFFmpeg(c.k, c.v)
-					if *flagDeleteIntermedeateFiles {
+					if !*flagIntermedeateFiles {
 						for _, f := range c.v {
 							os.Remove(f)
 						}

@@ -1,4 +1,4 @@
-// Copyright 2013, Homin Lee. All rights reserved.
+// Copyright 2016, Homin Lee. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -10,10 +10,11 @@ import (
 )
 
 var (
-	flagUseDocker               = flag.Bool("d", false, "use docker")
-	flagJobs                    = flag.Int("j", runtime.NumCPU(), "parallel jobs")
-	flagDeleteIntermedeateFiles = flag.Bool("i", false,
-		"delete intermedeate files after finish concat")
+	flagUseDocker         = flag.Bool("d", false, "use docker")
+	flagJobs              = flag.Int("j", runtime.NumCPU(), "parallel jobs")
+	flagIntermedeateFiles = flag.Bool("i", false,
+		"don't delete intermedeate files after finish concat")
+	flagDryrun = flag.Bool("n", false, "dry run")
 )
 
 func init() {

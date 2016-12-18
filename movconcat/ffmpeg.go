@@ -1,4 +1,4 @@
-// Copyright 2013, Homin Lee. All rights reserved.
+// Copyright 2016, Homin Lee. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -52,7 +52,7 @@ func runFFmpeg(k string, v []string) {
 		)
 	}
 
-	if *flagDeleteIntermedeateFiles == false {
+	if *flagIntermedeateFiles {
 		stdErr, err2 := os.Create(k + ".log")
 		panicIfErr(err2)
 		defer stdErr.Close()
