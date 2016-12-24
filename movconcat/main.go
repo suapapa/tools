@@ -86,7 +86,7 @@ func main() {
 					break loop
 				case c := <-workC:
 					runFFmpeg(c.k, c.v)
-					if !*flagIntermedeateFiles {
+					if !*flagDryrun && !*flagIntermedeateFiles {
 						for _, f := range c.v {
 							os.Remove(f)
 						}
@@ -106,7 +106,7 @@ func main() {
 
 	for i := 0; i < *flagJobs; i++ {
 		err := <-errC
-		if err != nil {
+		if err != context.Canceled && err != nil {
 			panic(err)
 		}
 	}
