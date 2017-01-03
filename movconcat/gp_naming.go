@@ -13,8 +13,8 @@ var (
 	gpChapNumRe = regexp.MustCompile(gpChapNumRePtn)
 )
 
-// gpFileChaper makes filename map of file number
-func gpFileChaper(files []string) map[string][]string {
+// gpChapter makes filename map of file number chapters
+func gpChapter(files []string) map[string][]string {
 	r := make(map[string][]string)
 	for _, f := range files {
 		// single video
