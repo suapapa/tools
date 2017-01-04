@@ -2,6 +2,7 @@ package main
 
 import (
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -37,6 +38,10 @@ func gpChapter(files []string) map[string][]string {
 			}
 
 		}
+	}
+
+	for k := range r {
+		sort.Strings(r[k])
 	}
 
 	return r
