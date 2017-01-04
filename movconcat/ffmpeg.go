@@ -10,10 +10,15 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 func runFFmpeg(k string, v []string) {
-	o := k + ".mov"
+	if len(v) == 0 {
+		panic("nothing to concat")
+	}
+
+	o := k + "." + ext(v[0])
 	log.Printf("concatting %s(%d clips)\n", o, len(v))
 
 	if *flagDryrun {
@@ -74,4 +79,9 @@ func runFFmpeg(k string, v []string) {
 	} else {
 		log.Println(o, "finished.")
 	}
+}
+
+func ext(fn string) string {
+	s := strings.Split(fn, ".")
+	return s[1]
 }
