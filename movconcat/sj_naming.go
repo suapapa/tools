@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"regexp"
+	"sort"
 	"time"
 )
 
@@ -15,6 +16,9 @@ var (
 
 // sjChapter makes filename map of starttime
 func sjChapter(files []string) map[string][]string {
+	sort.Strings(files)
+	log.Println(len(files), "MOVs found.")
+
 	// group MOVs by time
 	var lastT time.Time
 	var lastStartTime string

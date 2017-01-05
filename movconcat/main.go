@@ -9,8 +9,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
-	"sync"
 )
 
 func main() {
@@ -19,21 +17,22 @@ func main() {
 	root := ""
 	log.Println("searching MOVs from", root, "...")
 
+	var movs map[string][]string
+
+	// searching SJCam videos
 	files, err := filepath.Glob(filepath.Join(root, "*.MOV"))
 	panicIfErr(err)
 
-	sort.Strings(files)
-	log.Println(len(files), "MOVs found.")
+	if len(files) != 0 {
+		movs = sjChapter(files)
 
-	movs := sjChapter(files)
-
-	// concat MOVs
-	if *flagJobs <= 0 {
-		*flagJobs = 1
+	} else {
+		files, err = filepath.Glob(filepath.Join(root, "*.MP4"))
+		panicIfErr(err)
+		if len(files) != 0 {
+			movs = gpChapter(files)
+		}
 	}
-
-	var wg sync.WaitGroup
-	wg.Add(*flagJobs)
 
 	type Clips struct {
 		k string
@@ -48,7 +47,6 @@ func main() {
 		// create Workers
 		go func(id int, ctx context.Context) {
 			log.Printf("worker %d start\n", id)
-			defer wg.Done()
 		loop:
 			for {
 				select {

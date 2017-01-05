@@ -19,4 +19,10 @@ var (
 
 func init() {
 	flag.Parse()
+
+	// concat MOVs
+	if *flagJobs <= 0 {
+		*flagJobs = 1
+	}
+
 }
