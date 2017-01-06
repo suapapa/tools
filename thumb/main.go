@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"image"
-	_ "image/jpeg"
-	"image/png"
+	"image/jpeg"
+	_ "image/png"
 	"os"
 	"strings"
 
@@ -49,7 +49,7 @@ func main() {
 			panic(err)
 		}
 
-		err = png.Encode(out, t)
+		err = jpeg.Encode(out, t, &jpeg.Options{Quality: 85})
 		if err != nil {
 			panic(err)
 		}
@@ -97,5 +97,5 @@ func outName(n string) string {
 	ss := strings.Split(n, ".")
 	return strings.Join(ss[:len(ss)-1], ".") +
 		"_" + fmt.Sprint(*flagBox) +
-		".png"
+		".jpg"
 }
