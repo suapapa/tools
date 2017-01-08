@@ -83,5 +83,5 @@ func runFFmpeg(k string, v []string) {
 
 func ext(fn string) string {
 	s := strings.Split(fn, ".")
-	return s[1]
+	return strings.ToLower(s[1])
 }
