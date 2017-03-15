@@ -7,9 +7,9 @@ import (
 
 func printTimes(timeFmt string) {
 	now := time.Now()
-	fmt.Println(now.Format(timeFmt))
+	fmt.Printf("%s%d: %s\n", "w", now.YearDay()/7, now.Format(timeFmt))
 	for name, offset := range locs {
-		loc := time.FixedZone(name, offset)
-		fmt.Println(now.In(loc).Format(timeFmt))
+		locNow := now.In(time.FixedZone(name, offset))
+		fmt.Printf("%s%d: %s\n", "w", locNow.YearDay()/7, locNow.Format(timeFmt))
 	}
 }
