@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/mitchellh/cli"
 )
@@ -22,11 +23,11 @@ func main() {
 	}
 
 	if len(os.Args) == 1 {
-		printTimes(defaultTimeFmt)
+		printTimes(defaultTimeFmt, time.Now())
 		os.Exit(0)
 	}
 
-	c := cli.NewCLI("wdate", "1.0")
+	c := cli.NewCLI("wdate", "1.1")
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
 		"add": func() (cli.Command, error) {
@@ -39,6 +40,10 @@ func main() {
 		},
 		"fmt": func() (cli.Command, error) {
 			var cmd fmtCmd
+			return cmd, nil
+		},
+		"notnow": func() (cli.Command, error) {
+			var cmd notNowCmd
 			return cmd, nil
 		},
 	}

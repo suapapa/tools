@@ -5,11 +5,17 @@ import (
 	"time"
 )
 
-func printTimes(timeFmt string) {
-	now := time.Now()
-	fmt.Printf("%s%d: %s\n", "w", now.YearDay()/7, now.Format(timeFmt))
+func printTimes(timeFmt string, t time.Time) {
+	// t := time.Now()
+	fmt.Printf("%s%d: %s\n",
+		"w", weekCount(t.YearDay()), t.Format(timeFmt))
 	for name, offset := range locs {
-		locNow := now.In(time.FixedZone(name, offset))
-		fmt.Printf("%s%d: %s\n", "w", locNow.YearDay()/7, locNow.Format(timeFmt))
+		locT := t.In(time.FixedZone(name, offset))
+		fmt.Printf("%s%d: %s\n",
+			"w", weekCount(locT.YearDay()), locT.Format(timeFmt))
 	}
+}
+
+func weekCount(yd int) int {
+	return yd/7 + 1
 }

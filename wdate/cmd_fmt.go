@@ -7,6 +7,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 )
 
 type fmtCmd struct{}
@@ -27,7 +28,7 @@ func (f fmtCmd) Run(args []string) int {
 	}
 
 	fmt := args[0]
-	printTimes(fmt)
+	printTimes(fmt, time.Now())
 
 	return 0
 }
