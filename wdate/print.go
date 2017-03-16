@@ -17,7 +17,15 @@ func printTimes(timeFmt string, t time.Time) {
 }
 
 func weekCount(t time.Time) int {
+	// TODO: just int(t.Weekday()) OK?
+	var offset int
+	offset = int(t.Weekday())
+	// offset := int(fDate.Weekday()) - 1
+
 	yd := t.YearDay()
-	wd := t.Weekday()
-	return yd/7 + 1
+
+	r := ((yd + offset) / 7)
+	// log.Println("weekCount:", t, yd, offset, r)
+	// log.Println()
+	return r
 }
