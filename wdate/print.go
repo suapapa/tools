@@ -17,15 +17,31 @@ func printTimes(timeFmt string, t time.Time) {
 }
 
 func weekCount(t time.Time) int {
-	// TODO: just int(t.Weekday()) OK?
-	var offset int
-	offset = int(t.Weekday())
-	// offset := int(fDate.Weekday()) - 1
+	ft := firstdayOfTheYear(t)
+	offset := 7 - weekdayOffsetFromMonday(ft.Weekday())
 
-	yd := t.YearDay()
+	yd := t.YearDay() - offset
+	r := (yd-1)/7 + 1
 
-	r := ((yd + offset) / 7)
-	// log.Println("weekCount:", t, yd, offset, r)
-	// log.Println()
+	// log.Printf("offset:%d yd:%d r:%d\n",
+	// 	offset, yd, r)
+
 	return r
+}
+
+func weekdayOffsetFromMonday(d time.Weekday) int {
+	if d == time.Sunday {
+		return 6
+	}
+
+	return int(d) - 1
+}
+
+func firstdayOfTheYear(t time.Time) time.Time {
+	f, err := time.Parse("2006-01-02", fmt.Sprintf("%04d-01-01", t.Year()))
+	if err != nil {
+		panic(err)
+	}
+
+	return f
 }

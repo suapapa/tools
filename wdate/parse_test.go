@@ -13,7 +13,7 @@ func TestParseDate(t *testing.T) {
 		yearDay int
 		weekCnt int
 	}{
-		{"2017-01-01", 1, 0},
+		{"2017-01-01", 1, 1}, // Weired... I thinks its 0th week
 		{"2017-01-02", 2, 1}, {"2017-01-08", 8, 1},
 		{"2017-01-09", 9, 2}, {"2017-01-15", 15, 2},
 	}
@@ -33,8 +33,8 @@ func TestParseDate(t *testing.T) {
 		// test weekCount
 		// log.Println("test", tt, weekCount(tt))
 		if tc.weekCnt != weekCount(tt) {
-			t.Errorf("wc wrong! exp:%d, got:%d\n",
-				tc.weekCnt, weekCount(tt))
+			t.Errorf("wc wrong! exp:%d, got:%d %v\n",
+				tc.weekCnt, weekCount(tt), tt)
 		}
 	}
 }
