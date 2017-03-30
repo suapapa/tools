@@ -25,43 +25,63 @@ func main() {
 		panic(err)
 	}
 
+	defer s.Close()
+
 	quitC := make(chan struct{})
+	stdinC := make(chan []byte, 1)
+	serialC := make(chan []byte, 1)
+
 	ctx, cancle := context.WithCancel(context.Background())
 
+	// serial <- stdin
 	go func(ctx context.Context) {
-		rBuff := make([]byte, 1)
-
-	loopR:
+	loop:
 		for {
 			select {
 			case <-ctx.Done():
 				log.Println("quit loopR")
-				break loopR
-			default:
-				s.Read(rBuff)
-				os.Stdout.Write(rBuff)
+				break loop
+			case b := <-stdinC:
+				s.Write(b)
 			}
 		}
 		quitC <- struct{}{}
 	}(ctx)
 
-	go func(ctx context.Context) {
-		wBuff := make([]byte, 1)
+	// TODO: how cat I put context here?
+	go func() {
+		b := make([]byte, 1)
+		for {
+			os.Stdin.Read(b)
+			stdinC <- b
+		}
+	}()
 
-	loopW:
+	// stdout <- serial
+	go func(ctx context.Context) {
+	loop:
 		for {
 			select {
 			case <-ctx.Done():
-				log.Println("quit loopW")
-				break loopW
-			default:
-				os.Stdin.Read(wBuff)
-				s.Write(wBuff)
+				log.Println("quit loop")
+				break loop
+			case b := <-serialC:
+				os.Stdout.Write(b)
 			}
 		}
 		quitC <- struct{}{}
 	}(ctx)
 
+	// TODO: how cat I put context here?
+	go func() {
+		b := make([]byte, 1)
+		for {
+			s.Read(b)
+			serialC <- b
+		}
+	}()
+
+	// ----
 	sigC := make(chan os.Signal, 1)
 	signal.Notify(sigC, syscall.SIGINT, syscall.SIGTERM)
 
