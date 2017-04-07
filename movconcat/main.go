@@ -9,9 +9,25 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime/trace"
 )
 
 func main() {
+	// trace
+	if *flagTrace {
+		f, err := os.Create("trace.out")
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+
+		err = trace.Start(f)
+		if err != nil {
+			panic(err)
+		}
+		defer trace.Stop()
+	}
+
 	// list up MOVs
 	// root := filepath.Join(os.Getenv("HOME"), "video/blackbox/raw")
 	root := ""

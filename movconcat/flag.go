@@ -15,6 +15,7 @@ var (
 	flagIntermedeateFiles = flag.Bool("i", false,
 		"don't delete intermedeate files after finish concat")
 	flagDryrun = flag.Bool("n", false, "dry run")
+	flagTrace  = flag.Bool("t", false, "trace")
 )
 
 func init() {
