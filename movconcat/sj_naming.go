@@ -8,10 +8,12 @@ import (
 )
 
 const movRePtn = `(\d\d\d\d_\d\d\d\d_\d\d\d\d\d\d)_\d\d\d.MOV`
+const movEveRePtn = `(\d\d\d\d_\d\d\d\d_\d\d\d\d\d\d)_\d\d\d_EVE.MOV`
 const movTimeForm = "2006_0102_150405"
 
 var (
-	timeForm = regexp.MustCompile(movRePtn)
+	timeForm    = regexp.MustCompile(movRePtn)
+	timeEveForm = regexp.MustCompile(movEveRePtn)
 )
 
 // sjChapter makes filename map of starttime
@@ -23,11 +25,16 @@ func sjChapter(files []string) map[string][]string {
 	var lastT time.Time
 	var lastStartTime string
 	movs := make(map[string][]string)
+loop:
 	for _, m := range files {
 		// fmt.Println(filepath.Base(movs[0]))
 		matchs := timeForm.FindStringSubmatch(m)
 		if len(matchs) != 2 {
-			log.Println("Skip", m)
+			matchs := timeEveForm.FindStringSubmatch(m)
+			if len(matchs) != 2 {
+				log.Println("Skip", m)
+				continue loop
+			}
 		}
 
 		currT, err2 := time.Parse(movTimeForm, matchs[1])
