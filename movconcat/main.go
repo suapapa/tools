@@ -50,6 +50,10 @@ func main() {
 		}
 	}
 
+	if *flagJobs > len(movs) {
+		*flagJobs = len(movs)
+	}
+
 	type Clips struct {
 		k string
 		v []string
