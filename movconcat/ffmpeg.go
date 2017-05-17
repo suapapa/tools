@@ -47,7 +47,7 @@ func runFFmpeg(k string, v []string) {
 		// jrottenberg/ffmpeg -f concat \
 		// -i /opt/data/files.list -c copy /opt/data/test.mov
 		cmd = exec.Command("docker", "run", "--rm",
-			"--user", // for not owner root for output files
+			// "--user", // for not owner root for output files
 			"-v", os.Getenv("PWD")+":/opt/data",
 			"jrottenberg/ffmpeg",
 			"-f", "concat",
