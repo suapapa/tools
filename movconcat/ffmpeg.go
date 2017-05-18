@@ -13,9 +13,9 @@ import (
 	"strings"
 )
 
-func runFFmpeg(k string, v []string) {
+func runFFmpeg(k string, v []string) error {
 	if len(v) == 0 {
-		panic("nothing to concat")
+		return fmt.Errorf("noting to concat")
 	}
 
 	o := k + "." + ext(v[0])
@@ -23,16 +23,18 @@ func runFFmpeg(k string, v []string) {
 
 	if *flagDryrun {
 		log.Println(o, "finished. (dry run)")
-		return
+		return nil
 	}
 
 	if len(v) == 1 {
 		os.Rename(v[0], o)
-		return
+		return nil
 	}
 
 	tmp, err := os.Create(k + ".list")
-	panicIfErr(err)
+	if err != nil {
+		return fmt.Errorf("ffmpeg: failed to create list: %v", err)
+	}
 	defer os.Remove(tmp.Name())
 
 	for _, f := range v {
@@ -66,20 +68,25 @@ func runFFmpeg(k string, v []string) {
 
 	if *flagIntermedeateFiles {
 		stdErr, err2 := os.Create(k + ".log")
-		panicIfErr(err2)
+		if err2 != nil {
+			return fmt.Errorf("ffmpeg: cannot create log: %v", err2)
+		}
 		defer stdErr.Close()
 		cmd.Stderr = stdErr
 	}
 
 	err = cmd.Start()
-	panicIfErr(err)
+	if err != nil {
+		return fmt.Errorf("ffmpeg: fail to start cmd: %v", err)
+	}
 
 	err = cmd.Wait()
 	if err != nil {
-		log.Printf("failed to concat %s with error: %v\n", o, err)
-	} else {
-		log.Println(o, "finished.")
+		return fmt.Errorf("ffmpeg: failed to concat %v", err)
 	}
+
+	log.Println(o, "finished.")
+	return nil
 }
 
 func ext(fn string) string {

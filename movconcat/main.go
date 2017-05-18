@@ -74,7 +74,10 @@ func main() {
 					log.Printf("worker %d finish\n", id)
 					break loop
 				case c := <-workC:
-					runFFmpeg(c.k, c.v)
+					err := runFFmpeg(c.k, c.v)
+					if err != nil {
+						panic(err)
+					}
 					if !*flagDryrun && !*flagIntermedeateFiles {
 						for _, f := range c.v {
 							os.Remove(f)
