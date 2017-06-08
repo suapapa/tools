@@ -9,10 +9,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/suapapa/go_hangul/encoding/cp949"
+	"golang.org/x/text/encoding/korean"
+	"golang.org/x/text/transform"
 )
 
-var dryRun bool
+var (
+	dryRun bool
+
+	euckrDec = korean.EUCKR.NewDecoder()
+)
 
 func init() {
 	flag.BoolVar(&dryRun, "n", false, "dry-run")
@@ -31,10 +36,11 @@ func convUnzip(fileName string) {
 	defer r.Close()
 
 	for _, f := range r.File {
-		fixedBytes, err := cp949.From([]byte(f.Name))
+		fixed, _, err := transform.String(euckrDec, f.Name)
 		checkIf(err)
-		fixed := string(fixedBytes)
+
 		fmt.Println(fixed)
+
 		if dryRun {
 			continue
 		}
