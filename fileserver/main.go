@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -10,6 +11,9 @@ import (
 )
 
 func main() {
+	port := flag.String("p", "8080", "port")
+	flag.Parse()
+
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		log.Fatal(err)
@@ -21,9 +25,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("http://" + ipStr + ":8080")
+	log.Println("http://" + ipStr + ":" + *port)
 
-	log.Fatal(http.ListenAndServe(":8080", http.FileServer(http.Dir(dir))))
+	log.Fatal(http.ListenAndServe(":"+*port, http.FileServer(http.Dir(dir))))
 }
 
 func resolveIP() (string, error) {
