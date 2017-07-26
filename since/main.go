@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/docker/go-units"
+	units "github.com/docker/go-units"
 )
 
 const (
@@ -23,24 +23,22 @@ func main() {
 		os.Exit(-1)
 	}
 
-	t, err := time.Parse(timeForm, flag.Arg(0))
+	tFrom, err := time.Parse(timeForm, flag.Arg(0))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("failed to parse time string:", err)
 	}
 
-	var d time.Duration
+	var tTo time.Time
 	if *toTime == "now" {
-		d = time.Since(t)
+		tTo = time.Now()
 	} else {
-		tt, err := time.Parse(timeForm, *toTime)
+		tTo, err = time.Parse(timeForm, *toTime)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("failed to parse time string:", err)
 		}
-		d = tt.Sub(t)
 	}
 
-	// TODO: it prints duration by hours. Need human readable form
-	fmt.Println(units.HumanDuration(d))
+	fmt.Println(units.HumanDuration(tTo.Sub(tFrom)))
 }
 
 func printUsage() {
