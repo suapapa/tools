@@ -9,6 +9,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
+	"strconv"
 )
 
 // Scale represents,
@@ -64,19 +66,40 @@ func main() {
 
 }
 
-func isNum(s string) error {
+func isNum(s string) bool {
 	for _, c := range s {
 		if !(('0' <= c) && (c <= '9')) {
-			return errors.New("input is not number")
+			return false
 		}
 	}
-	return nil
+	return true
+}
+
+func convertPowerForm(s string) string {
+	numWithPower := regexp.MustCompile(`([0-9]+)\*\*([0-9]+)`)
+	sm := numWithPower.FindStringSubmatch(s)
+
+	// maybe a number?
+	if len(sm) != 3 {
+		return s
+	}
+
+	// b and p must number
+	b, _ := strconv.Atoi(sm[1])
+	p, _ := strconv.Atoi(sm[2])
+	r := 1
+	for i := 0; i < p; i++ {
+		r = r * b
+	}
+
+	return strconv.Itoa(r)
 }
 
 func convertForHuman(n string, s *Scale) (string, error) {
-	err := isNum(n)
-	if err != nil {
-		return "", err
+	n = convertPowerForm(n)
+
+	if !isNum(n) {
+		return "", fmt.Errorf("invalid number: %v", n)
 	}
 
 	l := len(n)

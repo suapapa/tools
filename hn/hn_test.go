@@ -22,13 +22,57 @@ func TestKoScale(t *testing.T) {
 		{"3000", "3000"},
 		{"30000000", "3000만"},
 		{"300000000000", "3000억"}, // len(in) == 12
+
+		{"10**10", "100억"},
 	}
 
 	for _, n := range numbers {
-		in, exp := n.in, n.expect
+		t.Run(n.expect, func(t *testing.T) {
+			in, exp := n.in, n.expect
 
-		if r, _ := convertForHuman(in, &koScale); r != exp {
-			t.Errorf("want \"%s\" got \"%s\"", exp, r)
-		}
+			if r, err := convertForHuman(in, &koScale); err != nil || r != exp {
+				if err != nil {
+					t.Fatal("got err:", err)
+				}
+				t.Errorf("want \"%s\" got \"%s\"", exp, r)
+			}
+		})
+	}
+}
+
+func TestIsNum(t *testing.T) {
+	tt := []struct {
+		n string
+		b bool
+	}{
+		{"10", true},
+		{"a", false},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.n, func(t *testing.T) {
+			if isNum(tc.n) != tc.b {
+				t.Errorf("exp %v but not", tc.b)
+			}
+		})
+	}
+}
+
+func TestConvertPowerForm(t *testing.T) {
+	tt := []struct {
+		p   string
+		exp string
+	}{
+		{"1**0", "1"},
+		{"10**0", "1"},
+		{"10**10", "10000000000"},
+		{"a**b", "a**b"},
+	}
+	for _, tc := range tt {
+		t.Run(tc.p, func(t *testing.T) {
+			if got := convertPowerForm(tc.p); got != tc.exp {
+				t.Errorf("exp %v but, got %v", tc.exp, got)
+			}
+		})
 	}
 }
