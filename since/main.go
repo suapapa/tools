@@ -42,5 +42,5 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Println(os.Args[0], "2017-05-10")
+	fmt.Println("usage:", os.Args[0], "2017-05-10")
 }
