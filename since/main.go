@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"github.com/docker/go-units"
 )
 
 const (
@@ -38,7 +40,7 @@ func main() {
 	}
 
 	// TODO: it prints duration by hours. Need human readable form
-	fmt.Println(d)
+	fmt.Println(units.HumanDuration(d))
 }
 
 func printUsage() {
