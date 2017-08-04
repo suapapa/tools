@@ -53,7 +53,8 @@ func main() {
 		cStdErr, err := cmd.StderrPipe()
 		exitIf(err)
 
-		cmd.Start()
+		err = cmd.Start()
+		exitIf(err)
 
 		go paintLines(ctx, cStdOut, "stdout")
 		go paintLines(ctx, cStdErr, "stderr")
