@@ -14,12 +14,12 @@ func resolveIP() (string, error) {
 		return "", err
 	}
 
-	var ip net.IP
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return "", err
 	}
 
+	var ip net.IP
 	for _, i := range ifaces {
 		if (i.Flags&net.FlagUp) == 0 ||
 			(i.Flags&net.FlagLoopback) != 0 {
@@ -36,8 +36,12 @@ func resolveIP() (string, error) {
 			case *net.IPAddr:
 				ip = v.IP
 			}
+
+			// sometimes ip.To4() makes ip to nil
 			if ip != nil {
 				ip = ip.To4()
+			}
+			if ip != nil {
 				return strings.Join([]string{hostname, ip.String(), i.HardwareAddr.String()}, " "), nil
 			}
 		}
