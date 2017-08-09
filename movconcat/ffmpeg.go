@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 )
 
@@ -42,6 +41,11 @@ func runFFmpeg(k string, v []string) error {
 	}
 	tmp.Close()
 
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("ffmpeg: fail to get workdir: %v", err)
+	}
+
 	var cmd *exec.Cmd
 	if *flagUseDocker {
 		// cf) https://github.com/jrottenberg/ffmpeg
@@ -50,12 +54,13 @@ func runFFmpeg(k string, v []string) error {
 		// -i /opt/data/files.list -c copy /opt/data/test.mov
 		cmd = exec.Command("docker", "run", "--rm",
 			// "--user", // for not owner root for output files
-			"-v", os.Getenv("PWD")+":/opt/data",
+			"-v", wd+":/opt/data",
+			"-w", "/opt/data",
 			"jrottenberg/ffmpeg",
 			"-f", "concat",
+			"-i", "/opt/data/"+tmp.Name(),
 			"-c", "copy",
-			"-i", filepath.Join("/opt/data", tmp.Name()),
-			filepath.Join("/opt/data", o),
+			"/opt/data/"+o,
 		)
 	} else {
 		cmd = exec.Command("ffmpeg",
