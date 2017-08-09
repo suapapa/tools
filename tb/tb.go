@@ -41,7 +41,7 @@ func main() {
 	var err error
 	if flagGobDecodeFileName == "" {
 		// read notes from tomboy root filepath
-		tomboyRoot := filepath.Join(os.Getenv("HOME"), "/Dropbox/tomboy/")
+		tomboyRoot := filepath.Join(dropboxDir(), "tomboy")
 		notes, err = tomboy.MakeNotebookFromFileSystemSync(tomboyRoot)
 		if err != nil {
 			panic(err)
@@ -125,5 +125,4 @@ func main() {
 	for _, n := range searchedNotes {
 		fmt.Println(n.ID, n.Title, n.Rev)
 	}
-
 }
