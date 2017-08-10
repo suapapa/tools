@@ -2,7 +2,7 @@
 
 ## Install:
 
-    go get github.com/gophergala2016/wdate.git
+    go get github.com/suapapa/tools/wdate
 
 
 ## Usage:

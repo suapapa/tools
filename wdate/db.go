@@ -7,11 +7,21 @@ package main
 import (
 	"encoding/gob"
 	"os"
+	"os/user"
 	"path/filepath"
 )
 
 var locs = make(map[string]int)
-var dbFile = filepath.Join(os.Getenv("HOME"), ".wdate")
+var dbFile string
+
+func init() {
+	usr, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+
+	dbFile = filepath.Join(usr.HomeDir, ".wdate")
+}
 
 func loadDB() error {
 	if !isFileExist(dbFile) {
