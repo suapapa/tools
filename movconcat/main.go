@@ -65,7 +65,7 @@ func main() {
 
 	for i := 0; i < *flagJobs; i++ {
 		// create Workers
-		go func(id int, ctx context.Context) {
+		go func(ctx context.Context, id int) {
 			log.Printf("worker %d start\n", id)
 		loop:
 			for {
@@ -86,7 +86,7 @@ func main() {
 				}
 			}
 			errC <- ctx.Err()
-		}(i, ctx)
+		}(ctx, i)
 	}
 
 	for k, v := range movs {
