@@ -41,6 +41,9 @@ func runFFmpeg(k string, v []string) error {
 	}
 	tmp.Close()
 
+	// make sure temp list written
+	tmp.Sync()
+
 	wd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("ffmpeg: fail to get workdir: %v", err)
