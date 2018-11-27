@@ -38,10 +38,8 @@ func main() {
 	// searching SJCam videos
 	files, err := filepath.Glob(filepath.Join(root, "*.MOV"))
 	panicIfErr(err)
-
 	if len(files) != 0 {
 		movs = sjChapter(files)
-
 	} else {
 		files, err = filepath.Glob(filepath.Join(root, "*.MP4"))
 		panicIfErr(err)

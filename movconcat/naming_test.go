@@ -24,3 +24,19 @@ func TestGpChapter(t *testing.T) {
 		t.Errorf("\nexpect %v\ngot %v\n", expect, got)
 	}
 }
+
+func TestGhChapter(t *testing.T) {
+	fs := strings.Split("GH010005.MP4 GH010006.MP4 GH020005.MP4 GH020006.MP4 GH030005.MP4 GH030006.MP4",
+		" ",
+	)
+
+	got := ghChapter(fs)
+	expect := map[string][]string{
+		"0005": strings.Split("GH010005.MP4 GH020005.MP4 GH030005.MP4", " "),
+		"0006": strings.Split("GH010006.MP4 GH020006.MP4 GH030006.MP4", " "),
+	}
+
+	if !reflect.DeepEqual(got, expect) {
+		t.Errorf("\nexpect %v\ngot %v\n", expect, got)
+	}
+}
