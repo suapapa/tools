@@ -44,7 +44,7 @@ func main() {
 		files, err = filepath.Glob(filepath.Join(root, "*.MP4"))
 		panicIfErr(err)
 		if len(files) != 0 {
-			movs = gpChapter(files)
+			movs = ghChapter(files)
 		}
 	}
 
