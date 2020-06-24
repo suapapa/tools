@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sync"
 )
 
 var (
@@ -39,19 +38,16 @@ func main() {
 	}
 	log.Printf("listen to http://%s:%d/%s", ip, port, filepath.Base(serveFN))
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	srv := startHTTPServer(&wg)
+	srv := startHTTPServer()
 	<-quitCh
 	err = srv.Shutdown(context.TODO())
 	if err != nil {
 		panic(err)
 	}
-	wg.Wait()
 	log.Println("bye~")
 }
 
-func startHTTPServer(wg *sync.WaitGroup) *http.Server {
+func startHTTPServer() *http.Server {
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", port)}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +67,6 @@ func startHTTPServer(wg *sync.WaitGroup) *http.Server {
 	})
 
 	go func() {
-		defer wg.Done()
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			log.Fatalf("ListenAndServe failed: %v", err)
 		}
