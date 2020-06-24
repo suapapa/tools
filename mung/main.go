@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -9,23 +10,49 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 var (
-	port int
+	port    int
+	count   int
+	serveFN string
+	quitCh  = make(chan struct{})
 )
 
 func init() {
 	flag.IntVar(&port, "p", 8080, "listen port")
+	flag.IntVar(&count, "c", 1, "how many download")
 }
 
 func main() {
 	flag.Parse()
-	serveFN := flag.Arg(0)
+	serveFN = flag.Arg(0)
 	if serveFN == "" {
 		log.Println("should give a file to server")
 		os.Exit(-1)
 	}
+
+	ip, err := resolveIP()
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("listen to http://%s:%d/%s", ip, port, filepath.Base(serveFN))
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	srv := startHTTPServer(&wg)
+	<-quitCh
+	err = srv.Shutdown(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+	wg.Wait()
+	log.Println("bye~")
+}
+
+func startHTTPServer(wg *sync.WaitGroup) *http.Server {
+	srv := &http.Server{Addr: fmt.Sprintf(":%d", port)}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("access from %s", r.RemoteAddr)
@@ -37,15 +64,20 @@ func main() {
 		}
 		defer f.Close()
 		io.Copy(w, f)
+		count--
+		if count <= 0 {
+			quitCh <- struct{}{}
+		}
 	})
 
-	ip, err := resolveIP()
-	if err != nil {
-		panic(err)
-	}
+	go func() {
+		defer wg.Done()
+		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatalf("ListenAndServe failed: %v", err)
+		}
+	}()
 
-	log.Printf("listen to http://%s:%d/%s", ip, port, filepath.Base(serveFN))
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
+	return srv
 }
 
 // resolveIP returns hostname, IP, MAC and error
