@@ -1,4 +1,34 @@
-.gitignore
+# OS
+.DS_Store
+Thumbs.db
 
+# Editor
+*.swp
+*.swo
+*~
+
+# Local agent / skill lock (not part of the Go tools)
 .agents/
 skills-lock.json
+
+# Go build and test artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+coverage.html
+vendor/
+go.work
+go.work.sum
+
+# Secrets
+.env
+.env.*
+
+# Runtime leftovers from local tools
+trace.out
+*.list

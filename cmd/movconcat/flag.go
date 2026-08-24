@@ -18,12 +18,11 @@ var (
 	flagTrace  = flag.Bool("t", false, "trace")
 )
 
-func init() {
+func parseFlags() {
 	flag.Parse()
 
 	// concat MOVs
 	if *flagJobs <= 0 {
 		*flagJobs = 1
 	}
-
 }

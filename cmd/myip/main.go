@@ -15,8 +15,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/suapapa/tools/pkg/scale"
 	tachoio "github.com/suapapa/go_tachoio"
+	"github.com/suapapa/tools/pkg/scale"
 )
 
 var (
@@ -84,6 +84,7 @@ func runServer(ctx context.Context) error {
 
 func handleServerConn(conn net.Conn) {
 	defer conn.Close()
+	_ = conn.SetDeadline(time.Now().Add(3 * time.Minute))
 	bc := bufio.NewReader(conn)
 	firstline, err := bc.ReadString('\n')
 	if err == nil {
@@ -94,7 +95,7 @@ func handleServerConn(conn net.Conn) {
 	tr := tachoio.NewReader(bc)
 	_, _ = io.Copy(io.Discard, tr)
 	n, d := tr.ReadMeter()
-	
+
 	bps := int(float64(n) / d.Seconds())
 	formatted, _ := scale.FormatWithDecimal(strconv.Itoa(bps), scale.Bin)
 	fmt.Printf(" %s BPS\n", formatted)

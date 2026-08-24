@@ -59,8 +59,13 @@ func run() error {
 	}
 	defer resp.Body.Close()
 
-	if _, err := io.Copy(os.Stdout, resp.Body); err != nil {
+	const maxBody = 1 << 20 // 1 MiB
+	n, err := io.Copy(os.Stdout, io.LimitReader(resp.Body, maxBody+1))
+	if err != nil {
 		return fmt.Errorf("failed to read response: %w", err)
+	}
+	if n > maxBody {
+		return fmt.Errorf("response body exceeds %d bytes", maxBody)
 	}
 	fmt.Println()
 

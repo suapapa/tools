@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/jpeg"
 	_ "image/png"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -53,7 +54,7 @@ func processImage(fn string) error {
 	}
 
 	t := resize.Thumbnail(*flagBox, *flagBox, img, resampler(*flagResampling))
-	
+
 	outFn := outName(fn)
 	out, err := os.Create(outFn)
 	if err != nil {
@@ -75,6 +76,18 @@ func openImage(fn string) (image.Image, error) {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 	defer f.Close()
+
+	const maxPixels = 64 << 20
+	cfg, _, err := image.DecodeConfig(f)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode image: %w", err)
+	}
+	if int64(cfg.Width)*int64(cfg.Height) > maxPixels {
+		return nil, fmt.Errorf("image too large: %dx%d", cfg.Width, cfg.Height)
+	}
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return nil, fmt.Errorf("failed to rewind image: %w", err)
+	}
 
 	i, _, err := image.Decode(f)
 	if err != nil {

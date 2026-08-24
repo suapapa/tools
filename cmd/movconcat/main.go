@@ -13,6 +13,8 @@ import (
 )
 
 func main() {
+	parseFlags()
+
 	// trace
 	if *flagTrace {
 		f, err := os.Create("trace.out")

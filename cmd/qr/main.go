@@ -22,6 +22,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	if *flagSize < 1 || *flagSize > 4096 {
+		fmt.Fprintf(os.Stderr, "size must be between 1 and 4096\n")
+		os.Exit(1)
+	}
+
 	if err := qrcode.WriteFile(flag.Arg(0), qrcode.Medium, *flagSize, *flagOutput); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to generate QR code: %v\n", err)
 		os.Exit(1)

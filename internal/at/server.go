@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 Homin Lee <homin.crc@gmail.com>
+Copyright © 2022 Homin Lee <i@homin.dev>
 */
 package at
 
@@ -10,6 +10,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -58,13 +59,23 @@ func tcpServer(cmd *cobra.Command, args []string) {
 	servFunc, err := cmd.Flags().GetString("func")
 	chk(err)
 
+	sem := make(chan struct{}, 256)
 	for {
 		conn, err := lstn.AcceptTCP()
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
-		go handleTCPConn(conn, servFunc)
+		select {
+		case sem <- struct{}{}:
+		default:
+			conn.Close()
+			continue
+		}
+		go func(c *net.TCPConn) {
+			defer func() { <-sem }()
+			handleTCPConn(c, servFunc)
+		}(conn)
 	}
 }
 
@@ -118,6 +129,8 @@ func udpServer(cmd *cobra.Command, args []string) {
 
 func handleTCPConn(conn *net.TCPConn, servFunc string) {
 	defer conn.Close()
+	idle := 60 * time.Second
+	_ = conn.SetDeadline(time.Now().Add(idle))
 
 	buf := make([]byte, 1024)
 	reader := bufio.NewReader(conn)
@@ -127,6 +140,7 @@ func handleTCPConn(conn *net.TCPConn, servFunc string) {
 			fmt.Println(err)
 			return
 		}
+		_ = conn.SetDeadline(time.Now().Add(idle))
 		if n == 0 {
 			continue
 		}

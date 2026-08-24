@@ -37,12 +37,23 @@ func runFFmpeg(k string, v []string) error {
 	defer os.Remove(tmp.Name())
 
 	for _, f := range v {
-		fmt.Fprintln(tmp, "file", f)
+		line, err := concatListEntry(f)
+		if err != nil {
+			tmp.Close()
+			return err
+		}
+		if _, err := fmt.Fprintln(tmp, line); err != nil {
+			tmp.Close()
+			return fmt.Errorf("ffmpeg: failed to write list: %v", err)
+		}
 	}
-	tmp.Close()
-
-	// make sure temp list written
-	tmp.Sync()
+	if err := tmp.Sync(); err != nil {
+		tmp.Close()
+		return fmt.Errorf("ffmpeg: failed to sync list: %v", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("ffmpeg: failed to close list: %v", err)
+	}
 
 	wd, err := os.Getwd()
 	if err != nil {
@@ -61,6 +72,7 @@ func runFFmpeg(k string, v []string) error {
 			"-w", "/opt/data",
 			"jrottenberg/ffmpeg",
 			"-f", "concat",
+			"-safe", "0",
 			"-i", "/opt/data/"+tmp.Name(),
 			"-c", "copy",
 			"/opt/data/"+o,
@@ -68,6 +80,7 @@ func runFFmpeg(k string, v []string) error {
 	} else {
 		cmd = exec.Command("ffmpeg",
 			"-f", "concat",
+			"-safe", "0",
 			"-i", tmp.Name(),
 			"-c", "copy",
 			o,
@@ -95,6 +108,14 @@ func runFFmpeg(k string, v []string) error {
 
 	log.Println(o, "finished.")
 	return nil
+}
+
+func concatListEntry(path string) (string, error) {
+	if strings.ContainsAny(path, "\n\r") {
+		return "", fmt.Errorf("ffmpeg: filename contains newline: %q", path)
+	}
+	escaped := strings.ReplaceAll(path, `'`, `'\''`)
+	return "file '" + escaped + "'", nil
 }
 
 func ext(fn string) string {

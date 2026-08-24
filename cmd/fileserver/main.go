@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/suapapa/tools/pkg/netutil"
 )
@@ -39,5 +40,12 @@ func run() error {
 	addr := fmt.Sprintf(":%s", *fPort)
 	log.Printf("Listening on http://%s%s", ip, addr)
 
-	return http.ListenAndServe(addr, http.FileServer(http.Dir(dir)))
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           http.FileServer(http.Dir(dir)),
+		ReadHeaderTimeout: 10 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    16 << 10,
+	}
+	return srv.ListenAndServe()
 }

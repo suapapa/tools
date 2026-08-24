@@ -5,36 +5,44 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
+	"strconv"
 )
 
-var (
-	urlFmtBase = "http://apis.skplanetx.com/weather/current/minutely?" +
-		"version=1"
-	urlFmtGPS  = urlFmtBase + "&lat=%d&lon=%d"
-	urlFmtAddr = urlFmtBase + "&city=%s&county=%s&village=%s"
-	urlFmtID   = urlFmtBase + "&stnid=%d"
-
-	appKey = os.Getenv("SK_WEATHER_APIKEY")
+const (
+	weatherAPIBase = "https://apis.skplanetx.com/weather/current/minutely"
+	maxWeatherBody = 1 << 20 // 1 MiB
 )
+
+var appKey = os.Getenv("SK_WEATHER_APIKEY")
 
 func getGPS(ctx context.Context, lat, lon int) ([]byte, error) {
-	url := fmt.Sprintf(urlFmtGPS, lat, lon)
-	return getURL(ctx, url)
+	q := url.Values{}
+	q.Set("version", "1")
+	q.Set("lat", strconv.Itoa(lat))
+	q.Set("lon", strconv.Itoa(lon))
+	return getURL(ctx, weatherAPIBase+"?"+q.Encode())
 }
 
 func getAddr(ctx context.Context, city, country, village string) ([]byte, error) {
-	url := fmt.Sprintf(urlFmtAddr, city, country, village)
-	return getURL(ctx, url)
+	q := url.Values{}
+	q.Set("version", "1")
+	q.Set("city", city)
+	q.Set("county", country)
+	q.Set("village", village)
+	return getURL(ctx, weatherAPIBase+"?"+q.Encode())
 }
 
 func getID(ctx context.Context, id int) ([]byte, error) {
-	url := fmt.Sprintf(urlFmtID, id)
-	return getURL(ctx, url)
+	q := url.Values{}
+	q.Set("version", "1")
+	q.Set("stnid", strconv.Itoa(id))
+	return getURL(ctx, weatherAPIBase+"?"+q.Encode())
 }
 
-func getURL(ctx context.Context, url string) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+func getURL(ctx context.Context, rawURL string) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", rawURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -46,15 +54,16 @@ func getURL(ctx context.Context, url string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		// Even if it's not OK, we might want the body for the Fail struct
-		body, _ := io.ReadAll(resp.Body)
-		return body, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxWeatherBody+1))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read body: %w", err)
+	}
+	if len(body) > maxWeatherBody {
+		return nil, fmt.Errorf("response body exceeds %d bytes", maxWeatherBody)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return body, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	return body, nil

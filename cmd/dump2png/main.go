@@ -32,6 +32,15 @@ func run() error {
 		return fmt.Errorf("invalid height: %w", err)
 	}
 
+	const maxDim = 16384
+	const maxPixels = 64 << 20
+	if w <= 0 || h <= 0 || w > maxDim || h > maxDim {
+		return fmt.Errorf("invalid dimensions %dx%d", w, h)
+	}
+	if int64(w)*int64(h) > maxPixels {
+		return fmt.Errorf("image too large: %dx%d", w, h)
+	}
+
 	dump, err := os.Open(fn)
 	if err != nil {
 		return fmt.Errorf("failed to open dump file: %w", err)

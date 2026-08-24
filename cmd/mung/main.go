@@ -50,11 +50,18 @@ func run() error {
 	downloadsRemaining := *count
 	var mu sync.Mutex
 
-	srv := &http.Server{Addr: fmt.Sprintf(":%d", *port)}
+	srv := &http.Server{
+		Addr:              fmt.Sprintf(":%d", *port),
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    16 << 10,
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Access from %s", r.RemoteAddr)
-		
+
 		f, err := os.Open(serveFN)
 		if err != nil {
 			http.Error(w, "File not found", http.StatusNotFound)
@@ -64,7 +71,7 @@ func run() error {
 
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", filepath.Base(serveFN)))
-		
+
 		if _, err := io.Copy(w, f); err != nil {
 			log.Printf("Copy failed: %v", err)
 			return
@@ -87,10 +94,10 @@ func run() error {
 
 	<-ctx.Done()
 	log.Println("Shutting down...")
-	
+
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	
+
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		return fmt.Errorf("shutdown failed: %w", err)
 	}
